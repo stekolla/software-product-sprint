@@ -14,19 +14,32 @@
 
 package com.google.sps.servlets;
 
+import com.google.sps.comments.Comment;
+import com.google.sps.comments.CommentService;
+import java.io.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.logging.Logger;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Servlet that returns some example content. TODO: modify this file to handle comments data */
-@WebServlet("/data")
-public class DataServlet extends HttpServlet {
-
+/** Servlet for handling anything comment related. */
+@WebServlet("/comment")
+public class CommentServlet extends HttpServlet {
+  /** Sends a JSON list of all {@link Comment}s. */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    response.setContentType("text/html;");
-    response.getWriter().println("<h1>Hello world!</h1>");
+    Servlets.sendJsonResponse(response,
+        CommentService.toJson(CommentService.fetchAsList(CommentService.createQueryForAll())));
+  }
+
+  /** Adds a new {@link Comment}. */
+  @Override
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    Logger log = Logger.getLogger("Comment");
+    log.severe(request.getParameterMap().toString());
+    CommentService.add(Comment.fromServletRequest(request));
   }
 }

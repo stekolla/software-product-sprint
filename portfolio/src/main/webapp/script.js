@@ -12,17 +12,61 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**
- * Adds a random greeting to the page.
- */
-function addRandomGreeting() {
-  const greetings =
-      ['Hello world!', '¡Hola Mundo!', '你好，世界！', 'Bonjour le monde!'];
-
-  // Pick a random greeting.
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-
-  // Add it to the page.
-  const greetingContainer = document.getElementById('greeting-container');
-  greetingContainer.innerText = greeting;
+async function loadAllComments() {
+  clearCommentContainer();
+  showCommentsLoadingMessage();
+  const response = await fetch('/comment');
+  const comments = await response.json();
+  hideCommentsLoadingMessage();
+  addCommentsToContainer(comments);
 }
+
+function clearCommentContainer() {
+  const commentContainer = document.getElementById('comments');
+  while (commentContainer.firstChild) {
+    commentContainer.removeChild(commentContainer.firstChild);
+  }
+}
+
+function showCommentsLoadingMessage() {
+  document.getElementById('comments-loading').style.display = 'block';
+}
+
+function hideCommentsLoadingMessage() {
+  document.getElementById('comments-loading').style.display = 'none';
+}
+
+function addCommentsToContainer(comments) {
+  const commentContainer = document.getElementById('comments');
+
+  if (comments.length == 0) {
+    commentContainer.innerText = 'No comments have been added!'
+    return;
+  }
+
+  for (const comment of comments) {
+    commentContainer.append(createCommentElement(comment));
+  }
+}
+
+function createCommentElement(comment) {
+  const commentElement = document.createElement('p');
+  commentElement.innerText = `${comment.author}: ${comment.comment}`;
+  return commentElement;
+}
+
+function addComment() {
+  fetch('/comment', {
+    method: 'post',
+    body: new URLSearchParams(new FormData(document.getElementById('comment-form')))
+  }).then(loadAllComments);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Fetch and display all of the comments once the DOM is ready.
+  loadAllComments();
+
+  // Add an event listener to the comment form submission button.
+  document.getElementById('comment-form-submit')
+      .addEventListener('click', addComment);
+});
